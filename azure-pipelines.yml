@@ -1,0 +1,48 @@
+# azure-pipelines.yml
+# Define the trigger so the pipeline runs when changes are made to the main branch.
+trigger:
+branches:
+include:
+- main
+# Add stages, jobs, and tasks to install dependencies (e.g., .NET SDK), run tests, and publish build artifacts.
+stages:
+- stage: BuildAndDeploy
+jobs:
+- job: Build
+pool:
+name: default # Specify the name of your self-hosted agent pool
+steps:
+- task: UseDotNet@2
+displayName: 'Install .NET SDK 8.x'
+inputs:
+packageType: 'sdk'
+version: '8.x'
+installationPath: $(Agent.ToolsDirectory)/dotnet
+- task: DotNetCoreCLI@2
+displayName: 'Restore NuGet Packages'
+inputs:
+command: 'restore'
+projects: '**/*.csproj'
+- task: DotNetCoreCLI@2
+displayName: 'Build Solution'
+inputs:
+command: 'build'
+projects: '**/*.csproj'
+arguments: ' - configuration Release'
+- task: DotNetCoreCLI@2
+displayName: 'Run Tests'
+inputs:
+command: 'test'
+projects: '**/*.csproj'
+arguments: ' - configuration Release'
+- task: DotNetCoreCLI@2
+displayName: 'Publish'
+inputs:
+command: 'publish'
+projects: '**/*.csproj'
+arguments: ' - configuration Release - output $(Build.ArtifactStagingDirectory)/publish'
+- task: PublishBuildArtifacts@1
+displayName: 'Publish Artifact'
+inputs:
+pathToPublish: '$(Build.ArtifactStagingDirectory)/publish'
+artifactName: 'drop'
