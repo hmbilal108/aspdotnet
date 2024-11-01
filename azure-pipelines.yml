@@ -4,6 +4,7 @@ trigger:
   branches:
     include:
       - main
+
 # Add stages, jobs, and tasks to install dependencies (e.g., .NET SDK), run tests, and publish build artifacts.
 stages:
   - stage: BuildAndDeploy
@@ -18,29 +19,34 @@ stages:
               packageType: 'sdk'
               version: '8.x'
               installationPath: $(Agent.ToolsDirectory)/dotnet
+
           - task: DotNetCoreCLI@2
             displayName: 'Restore NuGet Packages'
             inputs:
               command: 'restore'
               projects: '**/*.csproj'
+
           - task: DotNetCoreCLI@2
             displayName: 'Build Solution'
             inputs:
               command: 'build'
               projects: '**/*.csproj'
-              arguments: '-configuration Release'
+              arguments: '--configuration Release'
+
           - task: DotNetCoreCLI@2
             displayName: 'Run Tests'
             inputs:
               command: 'test'
               projects: '**/*.csproj'
-              arguments: '-configuration Release'
+              arguments: '--configuration Release'
+
           - task: DotNetCoreCLI@2
             displayName: 'Publish'
             inputs:
               command: 'publish'
               projects: '**/*.csproj'
-              arguments: '-configuration Release -output $(Build.ArtifactStagingDirectory)/publish'
+              arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/publish'
+
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Artifact'
             inputs:
